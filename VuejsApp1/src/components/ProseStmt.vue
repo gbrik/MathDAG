@@ -1,9 +1,9 @@
 ﻿<template>
     <div class="proseStmtContainer" @focus.capture="focused" style="position: relative;">
         <TextEdit class="titleText" expanding="true" math="true" v-model="stmt.name" placeholder="name"/>
-        <div v-show="visible && detail" class="detailContainer">
-            <TextEdit class="bodyText" expanding="true" math="true" v-model="detail.statement" placeholder="statement"/>
-            <TextEdit class="bodyText" expanding="true" math="true" v-model="detail.justification" placeholder="justification"/>
+        <div v-show="visible" class="detailContainer">
+            <TextEdit v-if="detail" class="bodyText" expanding="true" math="true" v-model="detail.statement" placeholder="statement"/>
+            <TextEdit v-if="detail" class="bodyText" expanding="true" math="true" v-model="detail.justification" placeholder="justification"/>
         </div>
         <div v-show="visible" class="proseBttnContainer">
             <div v-for="det in details" ><button class="bttn" @click="setZoom(det.zoom)">{{det.zoom}}</button></div>
@@ -19,7 +19,7 @@
 <script lang="ts">
 	import { Component, Vue, Prop, Watch } from 'vue-property-decorator'
     import { Key } from 'ts-key-enum'
-    import { Stmt, StmtDetail, Proof, data } from '@/model'
+    import { Stmt, StmtDetail, Proof, store } from '@/model'
 	import TextEdit from '@/components/TextEdit.vue'
 
 	@Component({
@@ -31,14 +31,21 @@
 		@Prop(Number)
 		id!: number
 
-        proof: Proof = data.proof
-        stmt: Stmt = this.proof.stmts[this.id]
+        stmt: Stmt = store.proof.stmts[this.id]
 
-        get details(): Array<StmtDetail> { return this.stmt.details.map((id) => this.proof.details[id]) }
+        get details(): Array<StmtDetail> { return store.details(this.id) }
+
+        get detail(): StmtDetail | undefined { return store.zoomedDetail(this.id) }
+
         get minZoom(): number { return this.details.length === 0 ? 0 : Math.min(...this.details.map((det) => det.zoom)) }
-        get visible(): boolean {
-            return this.minZoom <= this.proof.globalZoom || this.isRelevant
+
+        get isRelevant() {
+            if (store.proof.active === this.id) return true
+            if (store.activeDetail === undefined) return false
+            return store.activeDetail.dependents.find((id) => id === this.id) !== undefined
         }
+
+        get visible(): boolean { return this.minZoom <= store.proof.globalZoom || this.isRelevant }
 
         newZoom: number | string = ''
 
@@ -47,38 +54,19 @@
         }
 
         focused() {
-            this.proof.active = this.id
+            store.setActive(this.id)
         }
 
         addDetail() {
             if (typeof (this.newZoom) !== "number") return
             if (this.details.find((det) => det.zoom === this.newZoom)) return
-            var newId = this.proof.detailCount++
-            this.stmt.details.push(newId)
-            Vue.set(this.proof.details, newId, new StmtDetail(newId, this.newZoom))
-            this.stmt.details.sort((id1, id2) => this.proof.details[id1].zoom - this.proof.details[id2].zoom)
-            this.stmt.curZoom = this.newZoom
+            store.addDetail(this.id, this.newZoom)
+            store.setStmtZoom(this.id, this.newZoom)
             this.newZoom = ''
         }
 
         setZoom(newZoom: number) {
-            this.stmt.curZoom = newZoom
-        }
-
-        get detail(): StmtDetail | undefined {
-            return this.details.find((det) => det.zoom === this.stmt.curZoom)
-        }
-
-        get isRelevant() {
-            if (this.proof.active === this.id) return true
-            var active = this.proof.stmts[this.proof.active] as Stmt
-            if (active.details.length === 0) return false
-            var activeDetail = active.details.find((id) => this.proof.details[id].zoom === active.curZoom)
-            if (!activeDetail) {
-                activeDetail = active.details[0]
-                active.curZoom = this.proof.details[activeDetail].zoom
-            }
-            return (this.proof.details[activeDetail] as StmtDetail).dependents.find((id) => id === this.id) !== undefined
+            store.setStmtZoom(this.id, newZoom)
         }
 
         @Watch('detail.justification')
@@ -92,8 +80,8 @@
             }
             console.log(matches)
 
-            var stmtIds = matches.map((match) => this.proof.stmtIds.find((id) => this.proof.stmts[id].name === match));
-            (this.detail as StmtDetail).dependents = stmtIds.filter((id) => id !== undefined) as Array<number>
+            var stmts = matches.map((match) => store.stmts.find((stmt) => stmt.name === match));
+            (this.detail as StmtDetail).dependents = stmts.flatMap((stmt) => stmt ? [stmt.id] : [])
         }
 	}
 </script>

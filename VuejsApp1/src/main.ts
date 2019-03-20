@@ -13,11 +13,11 @@ Vue.use(Form)
 Vue.use(ButtonGroup)
 
 import App from '@/App.vue'
-import { data } from '@/model'
+import { vuexStore } from '@/model'
 
 Vue.config.productionTip = true
 
 new Vue({
-	render: h => h(App),
-	data: data,
+    render: h => h(App),
+    store: vuexStore,
 }).$mount('#app')
