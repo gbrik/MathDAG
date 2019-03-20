@@ -6,6 +6,7 @@
     <Name>MathDAG</Name>
     <RootNamespace>VuejsApp1</RootNamespace>
     <LastActiveSolutionConfig>Debug|Any CPU</LastActiveSolutionConfig>
+    <NameOfLastUsedPublishProfile>MathDAG - Web Deploy</NameOfLastUsedPublishProfile>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -36,6 +37,7 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="MathDAG - Web Deploy.pubxml" />
     <Content Include="public\favicon.ico" />
     <Content Include="public\index.html" />
     <Content Include="public\mathjax\extensions\a11y\invalid_keypress.mp3" />
@@ -137,7 +139,6 @@
     <Content Include="src\components\ProseStmt.vue">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="src\components\Home.vue" />
     <Content Include="tsconfig.json" />
     <Content Include="package.json" />
     <Content Include="README.md" />

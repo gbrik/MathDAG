@@ -1,29 +1,44 @@
-﻿export class Stmt {
-	constructor(
+﻿import Vue from 'vue'
+import Vuex from 'vuex'
+import { Store } from 'vuex'
+import { State, Mutation, Getter, createVuexStore } from 'vuex-simple'
+Vue.use(Vuex)
+
+export class Stmt {
+    constructor(
+        public id: number,
 		public name: string = '',
-        public details: Array<StmtDetail> = [],
+        public details: Array<number> = [],
         public curZoom: number = 0
 	) {}
 }
 
 export class StmtDetail {
-	constructor(
-		public zoom: number = 0,
+    constructor(
+        public id: number,
+		public zoom: number,
 		public statement: string = '',
 		public justification: string = '',
-		public dependents: Array<String> = [],
+		public dependents: Array<number> = [],
 	) {}
 }
 
-export class Store {
-    stmts: Array<Stmt> = []
+export class Proof {
+    stmts: any = {}
+    stmtIds: Array<number> = []
     active: number = 0
+    details: any = {}
+    detailCount: number = 0
+    globalZoom: number = 0
 }
 
-export const data = new Store()
+export const data = {
+    proof: new Proof()
+}
 
+export const proof = data.proof
 /*
-export class Store {
+export class MyStore {
 	@State()
 	stmts: Array<Stmt> = []
 
@@ -38,5 +53,6 @@ export class Store {
 	}
 }
 
-export const store: Store< = createVuexStore(new Store())
- */
+export const store: MyStore = new MyStore()
+export const vuexStore: Store<MyStore> = createVuexStore(store)
+*/

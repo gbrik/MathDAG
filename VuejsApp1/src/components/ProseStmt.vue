@@ -1,12 +1,14 @@
 ﻿<template>
     <div class="proseStmtContainer" @focus.capture="focused" style="position: relative;">
         <TextEdit class="titleText" expanding="true" math="true" v-model="stmt.name" placeholder="name"/>
-        <TextEdit class="bodyText" expanding="true" math="true" v-if="detail" v-model="detail.statement" placeholder="statement"/>
-        <TextEdit class="bodyText" expanding="true" math="true" v-if="detail" v-model="detail.justification" placeholder="justification"/>
-        <div class="proseBttnContainer">
-            <div v-for="det in stmt.details" ><button class="bttn" @click="setZoom(det.zoom)">{{det.zoom}}</button></div>
+        <div v-show="visible && detail" class="detailContainer">
+            <TextEdit class="bodyText" expanding="true" math="true" v-model="detail.statement" placeholder="statement"/>
+            <TextEdit class="bodyText" expanding="true" math="true" v-model="detail.justification" placeholder="justification"/>
+        </div>
+        <div v-show="visible" class="proseBttnContainer">
+            <div v-for="det in details" ><button class="bttn" @click="setZoom(det.zoom)">{{det.zoom}}</button></div>
             <div style="display: flex; flex-direction: row;">
-                <input class="newZoomInput"  @keydown="detailKeydown" placeholder="new zoom level" v-model.number="newZoom" />
+                <input class="newZoomInput"  @keydown="detailKeydown" placeholder="new zoom" v-model.number="newZoom" />
                 <button class="bttn" @click="addDetail">+</button>
             </div>
         </div>
@@ -17,7 +19,7 @@
 <script lang="ts">
 	import { Component, Vue, Prop, Watch } from 'vue-property-decorator'
     import { Key } from 'ts-key-enum'
-    import { Stmt, StmtDetail, data } from '@/model'
+    import { Stmt, StmtDetail, Proof, data } from '@/model'
 	import TextEdit from '@/components/TextEdit.vue'
 
 	@Component({
@@ -27,9 +29,16 @@
 	})
 	export default class ProseStmt extends Vue {
 		@Prop(Number)
-		index!: number
+		id!: number
 
-        stmt = data.stmts[this.index]
+        proof: Proof = data.proof
+        stmt: Stmt = this.proof.stmts[this.id]
+
+        get details(): Array<StmtDetail> { return this.stmt.details.map((id) => this.proof.details[id]) }
+        get minZoom(): number { return this.details.length === 0 ? 0 : Math.min(...this.details.map((det) => det.zoom)) }
+        get visible(): boolean {
+            return this.minZoom <= this.proof.globalZoom || this.isRelevant
+        }
 
         newZoom: number | string = ''
 
@@ -38,13 +47,16 @@
         }
 
         focused() {
-            data.active = this.index
+            this.proof.active = this.id
         }
 
         addDetail() {
             if (typeof (this.newZoom) !== "number") return
-            if (this.stmt.details.find((det) => det.zoom === this.newZoom)) return
-            this.stmt.details.push(new StmtDetail(this.newZoom))
+            if (this.details.find((det) => det.zoom === this.newZoom)) return
+            var newId = this.proof.detailCount++
+            this.stmt.details.push(newId)
+            Vue.set(this.proof.details, newId, new StmtDetail(newId, this.newZoom))
+            this.stmt.details.sort((id1, id2) => this.proof.details[id1].zoom - this.proof.details[id2].zoom)
             this.stmt.curZoom = this.newZoom
             this.newZoom = ''
         }
@@ -53,22 +65,35 @@
             this.stmt.curZoom = newZoom
         }
 
-        get detailIndex() {
-            return this.stmt.details.findIndex((det) => det.zoom === this.stmt.curZoom)
-        }
-
-        get detail() {
-            return this.stmt.details[this.detailIndex]
+        get detail(): StmtDetail | undefined {
+            return this.details.find((det) => det.zoom === this.stmt.curZoom)
         }
 
         get isRelevant() {
-            if (data.active === this.index) return true
-            var active = data.stmts[data.active]
+            if (this.proof.active === this.id) return true
+            var active = this.proof.stmts[this.proof.active] as Stmt
             if (active.details.length === 0) return false
-            if (!active.details[active.curZoom]) {
-                active.curZoom = active.details[0].zoom
+            var activeDetail = active.details.find((id) => this.proof.details[id].zoom === active.curZoom)
+            if (!activeDetail) {
+                activeDetail = active.details[0]
+                active.curZoom = this.proof.details[activeDetail].zoom
             }
-            return active.details[active.curZoom].dependents.find((name) => name === this.stmt.name) !== undefined
+            return (this.proof.details[activeDetail] as StmtDetail).dependents.find((id) => id === this.id) !== undefined
+        }
+
+        @Watch('detail.justification')
+        onJustificationChange(val: string) {
+            var matches = []
+            var re = /\[(.*?)\]/g
+            var match = re.exec(val)
+            while (match) {
+                matches.push(match[1])
+                match = re.exec(val)
+            }
+            console.log(matches)
+
+            var stmtIds = matches.map((match) => this.proof.stmtIds.find((id) => this.proof.stmts[id].name === match));
+            (this.detail as StmtDetail).dependents = stmtIds.filter((id) => id !== undefined) as Array<number>
         }
 	}
 </script>
@@ -111,7 +136,7 @@
     }
 
     .newZoomInput {
-        width: 120px;
+        width: 80px;
         overflow: hidden;
     }
 
@@ -123,5 +148,16 @@
         left: 0;
         background: rgba(30, 30, 30, 0.15);
         pointer-events: none;
+    }
+
+    .collapse-enter-active, .collapse-leave-active {
+        transition: height 0.5s;
+    }
+    .collapse-enter, .collapse-leave-to {
+        height: 0;
+    }
+
+    detailContainer {
+        overflow: hidden;
     }
 </style>

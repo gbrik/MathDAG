@@ -1,6 +1,6 @@
 ﻿<template>
 	<div class="containerDiv">
-		<textarea v-bind:hidden="showingRendered" 
+		<textarea v-show="!showingRendered" 
                   v-bind:class="{ expanding: expanding }"
                   v-bind:placeholder="placeholder"
                   @change="onChange" 
@@ -8,8 +8,8 @@
                   @blur="renderMath"
                   v-model="textValue">
 		</textarea>
-        <pre v-if="expanding" v-bind:hidden="showingRendered"><span>{{textValue}}</span><br/></pre>
-		<div class="mathjaxDiv" v-bind:hidden="!showingRendered" @click="focusTextArea">
+        <pre v-if="expanding" v-show="!showingRendered"><span>{{textValue}}</span><br/></pre>
+		<div class="mathjaxDiv" v-show="showingRendered" @click="focusTextArea">
 		</div>
 	</div>
 </template>
