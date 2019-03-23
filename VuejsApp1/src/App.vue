@@ -1,8 +1,6 @@
 <template>
     <div id="app">
-		<ProseStmt v-for="stmt, index in stmts" :id="stmt.id" :key="stmt.id">
-		</ProseStmt>
-        <div style="position: absolute; left: 0; top: 0; margin: 5px;">
+        <div class="buttonContainer" >
 		    <div><button @click="addStmt">Add Statement</button></div>
             <div><button @click="save">Save</button></div>
             <div><input id="fileInput" style="width: 90px;" type="file" accept=".yaml"></input><button @click="load">Load</button></div>
@@ -11,6 +9,13 @@
                 <button @click="incZoom">+</button>
                 <button @click="decZoom">-</button>
             </div>
+        </div>
+        <div class="proseContainer">
+		    <ProseStmt v-for="stmt, index in stmts" :id="stmt.id" :key="stmt.id">
+		    </ProseStmt>
+        </div>
+        <div class="dagContainer">
+
         </div>
     </div>
 </template>
@@ -68,13 +73,21 @@
 
 <style>
 	#app {
-		margin: auto;
-		max-width: 800px;
-		width: 100%;
-		padding: 20px;
+        display: flex;
+        margin: 10px;
 	}
 
-    .stmts-move {
-        transition: transform 1s;
+    .buttonContainer {
+        width: 200px;
+    }
+
+    .proseContainer {
+        flex-grow: 1;
+        width: 0;
+    }
+    
+    .dagContainer {
+        flex-grow: 1;
+        width: 0;
     }
 </style>

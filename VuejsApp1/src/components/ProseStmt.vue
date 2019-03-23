@@ -12,7 +12,7 @@
                 <button class="bttn" @click="addDetail">+</button>
             </div>
         </div>
-        <div class="dimmed" v-if="!isRelevant"></div>
+        <div class="dimmed" v-bind:class="{ undimmed: isRelevant }"></div>
     </div>
 </template>
 
@@ -95,6 +95,7 @@
         position: relative;
         margin-bottom: 10px;
         box-shadow: 0 0 5px 2px grey;
+        width: calc(100% - 150px);
     }
 
     .proseBttnContainer {
@@ -134,8 +135,14 @@
         width: 100%;
         top: 0;
         left: 0;
-        background: rgba(30, 30, 30, 0.15);
+        background: rgb(30, 30, 30);
+        opacity: 0.15;
         pointer-events: none;
+        transition: opacity 0.3s;
+    }
+
+    .undimmed {
+        opacity: 0;
     }
 
     .collapse-enter-active, .collapse-leave-active {
