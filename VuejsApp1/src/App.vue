@@ -11,11 +11,11 @@
             </div>
         </div>
         <div class="proseContainer">
-		    <ProseStmt v-for="stmt, index in stmts" :id="stmt.id" :key="stmt.id">
+		    <ProseStmt v-for="stmt, index in stmts" :stmtId="stmt.id" :key="stmt.id">
 		    </ProseStmt>
         </div>
         <div class="dagContainer">
-
+            <DAG></DAG>
         </div>
     </div>
 </template>
@@ -24,12 +24,14 @@
     import { Component, Vue, Prop } from 'vue-property-decorator'
     import YAML from 'yaml'
     import $ from 'jquery'
-	import ProseStmt from '@/components/ProseStmt.vue'
+    import ProseStmt from '@/components/ProseStmt.vue'
+    import DAG from '@/components/DAG.vue'
     import { Stmt, store } from '@/model'
 
 	@Component({
 		components: {
-			ProseStmt
+            ProseStmt,
+            DAG
 		}
 	})
     export default class App extends Vue {
@@ -75,6 +77,7 @@
 	#app {
         display: flex;
         margin: 10px;
+        height: calc(100vh - 20px);
 	}
 
     .buttonContainer {
@@ -82,12 +85,16 @@
     }
 
     .proseContainer {
-        flex-grow: 1;
-        width: 0;
+        width: 600px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 5px;
+        resize: horizontal;
     }
     
     .dagContainer {
         flex-grow: 1;
         width: 0;
+        position: relative;
     }
 </style>

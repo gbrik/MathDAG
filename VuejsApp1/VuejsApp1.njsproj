@@ -133,6 +133,15 @@
     <Content Include="public\mathjax\fonts\HTML-CSS\TeX\woff\MathJax_Vector-Bold.woff" />
     <Content Include="public\mathjax\fonts\HTML-CSS\TeX\woff\MathJax_Vector-Regular.woff" />
     <Content Include="src\App.vue" />
+    <Content Include="src\components\DAG.vue">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="src\components\DAGEdge.vue">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="src\components\DAGStmt.vue">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="src\components\TextEdit.vue">
       <SubType>Code</SubType>
     </Content>

@@ -1,9 +1,9 @@
 ﻿<template>
     <div class="proseStmtContainer" @focus.capture="focused" style="position: relative;">
-        <TextEdit class="titleText" expanding="true" math="true" v-model="stmt.name" placeholder="name"/>
+        <TextEdit class="titleText" expanding="true" math="true" v-model="stmtName" placeholder="name"/>
         <div v-show="visible" class="detailContainer">
-            <TextEdit v-if="detail" class="bodyText" expanding="true" math="true" v-model="detail.statement" placeholder="statement"/>
-            <TextEdit v-if="detail" class="bodyText" expanding="true" math="true" v-model="detail.justification" placeholder="justification"/>
+            <TextEdit v-if="detail" class="bodyText" expanding="true" math="true" v-model="detailStmt" placeholder="statement"/>
+            <TextEdit v-if="detail" class="bodyText" expanding="true" math="true" v-model="detailJustification" placeholder="justification"/>
         </div>
         <div v-show="visible" class="proseBttnContainer">
             <div v-for="det in details" ><button class="bttn" @click="setZoom(det.zoom)">{{det.zoom}}</button></div>
@@ -29,20 +29,29 @@
 	})
 	export default class ProseStmt extends Vue {
 		@Prop(Number)
-		id!: number
+		stmtId!: number
 
-        stmt: Stmt = store.proof.stmts[this.id]
+        stmt: Stmt = store.stmt(this.stmtId)
 
-        get details(): Array<StmtDetail> { return store.details(this.id) }
+        get stmtName(): string { return store.stmt(this.stmtId).name }
+        set stmtName(s: string) { store.setStmtName({ stmtId: this.stmtId, name: s }) }
 
-        get detail(): StmtDetail | undefined { return store.zoomedDetail(this.id) }
+        get details(): Array<StmtDetail> { return store.details(this.stmtId) }
+
+        get detail(): StmtDetail | undefined { return store.zoomedDetail(this.stmtId) }
+
+        get detailStmt(): string | undefined { return this.detail ? this.detail.statement : undefined}
+        set detailStmt(s) { store.setDetailStmt({ detailId: this.detail!.id, stmt: s! }) }
+
+        get detailJustification(): string | undefined { return this.detail ? this.detail.justification : undefined }
+        set detailJustification(s) { store.setDetailJustification({ detailId: this.detail!.id, justification: s! }) }
 
         get minZoom(): number { return this.details.length === 0 ? 0 : Math.min(...this.details.map((det) => det.zoom)) }
 
         get isRelevant() {
-            if (store.proof.active === this.id) return true
+            if (store.proof.active === this.stmtId) return true
             if (store.activeDetail === undefined) return false
-            return store.activeDetail.dependents.find((id) => id === this.id) !== undefined
+            return store.activeDetail.dependents.find((id) => id === this.stmtId) !== undefined
         }
 
         get visible(): boolean { return this.minZoom <= store.proof.globalZoom || this.isRelevant }
@@ -54,34 +63,19 @@
         }
 
         focused() {
-            store.setActive(this.id)
+            store.setActive(this.stmtId)
         }
 
         addDetail() {
             if (typeof (this.newZoom) !== "number") return
             if (this.details.find((det) => det.zoom === this.newZoom)) return
-            store.addDetail(this.id, this.newZoom)
-            store.setStmtZoom(this.id, this.newZoom)
+            store.addDetail({ stmtId: this.stmtId, zoom: this.newZoom })
+            store.setStmtZoom({ stmtId: this.stmtId, zoom: this.newZoom })
             this.newZoom = ''
         }
 
         setZoom(newZoom: number) {
-            store.setStmtZoom(this.id, newZoom)
-        }
-
-        @Watch('detail.justification')
-        onJustificationChange(val: string) {
-            var matches = []
-            var re = /\[(.*?)\]/g
-            var match = re.exec(val)
-            while (match) {
-                matches.push(match[1])
-                match = re.exec(val)
-            }
-            console.log(matches)
-
-            var stmts = matches.map((match) => store.stmts.find((stmt) => stmt.name === match));
-            (this.detail as StmtDetail).dependents = stmts.flatMap((stmt) => stmt ? [stmt.id] : [])
+            store.setStmtZoom({ stmtId: this.stmtId, zoom: newZoom })
         }
 	}
 </script>
