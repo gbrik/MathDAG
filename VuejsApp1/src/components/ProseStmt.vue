@@ -6,10 +6,16 @@
             <TextEdit v-if="detail" class="bodyText" expanding="true" math="true" v-model="detailJustification" placeholder="justification"/>
         </div>
         <div v-show="visible" class="proseBttnContainer">
-            <div v-for="det in details" ><button class="bttn" @click="setZoom(det.zoom)">{{det.zoom}}</button></div>
+            <div v-for="det in details" >
+                <button class="bttn" @click="setZoom(det.zoom)">{{det.zoom}}</button>
+                <button class="bttn smol" @click="deleteDetail(det.zoom)">x</button>
+            </div>
             <div style="display: flex; flex-direction: row;">
                 <input class="newZoomInput"  @keydown="detailKeydown" placeholder="new zoom" v-model.number="newZoom" />
                 <button class="bttn" @click="addDetail">+</button>
+            </div>
+            <div>
+                <button class="bttn" @click="deleteStmt">Delete Stmt</button>
             </div>
         </div>
         <div class="dimmed" v-bind:class="{ undimmed: isRelevant }"></div>
@@ -77,6 +83,14 @@
         setZoom(newZoom: number) {
             store.setStmtZoom({ stmtId: this.stmtId, zoom: newZoom })
         }
+
+        deleteStmt() {
+            store.deleteStmt(this.stmtId)
+        }
+
+        deleteDetail(zoom: number) {
+            store.deleteDetailByZoom({ stmtId: this.stmtId, zoom: zoom })
+        }
 	}
 </script>
 
@@ -107,6 +121,10 @@
 
     .bttn:active {
         box-shadow: inset;
+    }
+
+    .bttn.smol {
+        transform: scale(0.666) translate(-30%, -30%);
     }
 
     .titleText {
