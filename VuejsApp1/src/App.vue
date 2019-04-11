@@ -9,6 +9,7 @@
                 <button @click="incZoom">+</button>
                 <button @click="decZoom">-</button>
             </div>
+            <button @click="toggleEdit">{{editText}}</button>
         </div>
         <div class="proseContainer">
 		    <ProseStmt v-for="stmt, index in stmts" :stmtId="stmt.id" :key="stmt.id">
@@ -37,6 +38,7 @@
     export default class App extends Vue {
         get stmts(): Array<Stmt> { return store.stmts }
         get globalZoom(): number { return store.proof.globalZoom }
+        get editText(): string { return store.editing ? 'View Mode' : 'Edit Mode' }
 
         reader: FileReader = new FileReader()
 
@@ -70,6 +72,7 @@
         addStmt() { store.addStmt() }
         incZoom() { store.setZoom(store.proof.globalZoom + 1) }
         decZoom() { store.setZoom(Math.max(store.proof.globalZoom - 1, 0)) }
+        toggleEdit() { store.setEditing(!store.editing) }
 	}
 </script>
 

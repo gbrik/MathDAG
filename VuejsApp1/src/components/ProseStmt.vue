@@ -1,24 +1,26 @@
 ﻿<template>
-    <div class="proseStmtContainer" @focus.capture="focused" style="position: relative;">
-        <TextEdit class="titleText" expanding="true" math="true" v-model="stmtName" placeholder="name"/>
-        <div v-show="visible" class="detailContainer">
-            <TextEdit v-if="detail" class="bodyText" expanding="true" math="true" v-model="detailStmt" placeholder="statement"/>
-            <TextEdit v-if="detail" class="bodyText" expanding="true" math="true" v-model="detailJustification" placeholder="justification"/>
+    <div class="proseStmtContainer" @focus.capture="focused">
+        <div class="proseStmt">
+            <TextEdit class="titleText" expanding="true" math="true" v-model="stmtName" placeholder="name"/>
+            <div v-show="visible" class="detailContainer">
+                <TextEdit v-if="detail" class="bodyText" expanding="true" math="true" v-model="detailStmt" placeholder="statement"/>
+                <TextEdit v-if="detail" class="bodyText" expanding="true" math="true" v-model="detailJustification" placeholder="justification"/>
+            </div>
+            <div class="dimmed" v-bind:class="{ undimmed: isRelevant }"></div>
         </div>
         <div v-show="visible" class="proseBttnContainer">
             <div v-for="det in details" >
                 <button class="bttn" @click="setZoom(det.zoom)">{{det.zoom}}</button>
-                <button class="bttn smol" @click="deleteDetail(det.zoom)">x</button>
+                <button v-if="editing" class="bttn smol" @click="deleteDetail(det.zoom)">x</button>
             </div>
-            <div style="display: flex; flex-direction: row;">
+            <div v-if="editing "style="display: flex; flex-direction: row;">
                 <input class="newZoomInput"  @keydown="detailKeydown" placeholder="new zoom" v-model.number="newZoom" />
                 <button class="bttn" @click="addDetail">+</button>
             </div>
-            <div>
+            <div v-if="editing">
                 <button class="bttn" @click="deleteStmt">Delete Stmt</button>
             </div>
         </div>
-        <div class="dimmed" v-bind:class="{ undimmed: isRelevant }"></div>
     </div>
 </template>
 
@@ -61,6 +63,7 @@
         }
 
         get visible(): boolean { return this.minZoom <= store.proof.globalZoom || this.isRelevant }
+        get editing(): boolean { return store.editing }
 
         newZoom: number | string = ''
 
@@ -100,16 +103,18 @@
     }
 
     .proseStmtContainer {
+        display: flex;
+    }
+
+    .proseStmt {
         position: relative;
+        flex-grow: 1;
         margin-bottom: 10px;
         box-shadow: 0 0 5px 2px grey;
-        width: calc(100% - 150px);
     }
 
     .proseBttnContainer {
-        position: absolute;
-        left: calc(100% + 10px);
-        top: 0;
+        margin-left: 10px;
     }
     
     .bttn {

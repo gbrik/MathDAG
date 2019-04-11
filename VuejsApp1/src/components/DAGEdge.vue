@@ -1,5 +1,5 @@
 ﻿<template>
-    <svg>
+    <svg v-bind:style="svgStyle">
         <path stroke-width="2" stroke="#000" fill-opacity="0" v-bind:d="path"></path>
     </svg>
 </template>
@@ -16,11 +16,21 @@
         @Prop()
         edge!: dagre.GraphEdge
 
+        @Prop()
+        graph!: dagre.graphlib.Graph
+
         get path() {
             var pts = this.edge.points
             var pathStr = "M " + pts[0].x + " " + pts[0].y
             pts.forEach(({ x, y }) => pathStr = pathStr + " L " + x + " " + y)
             return pathStr
+        }
+
+        get svgStyle() {
+            return {
+                height: this.graph.graph().height + 'px',
+                width:  this.graph.graph().width + 'px',
+            }
         }
     }
 </script>

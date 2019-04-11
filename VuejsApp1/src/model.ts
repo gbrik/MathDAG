@@ -39,6 +39,9 @@ export class MyStore {
     @State()
     proof: Proof = new Proof()
 
+    @State()
+    editing: boolean = true
+
     stmt(stmtId: number): Stmt { return this.proof.stmts[stmtId] }
 
     get stmts(): Array<Stmt> {
@@ -46,7 +49,7 @@ export class MyStore {
     }
 
     details(stmtId: number): Array<StmtDetail> {
-        return (this.stmt(stmtId) as Stmt).details.map((id) => this.proof.details[id])
+        return this.stmt(stmtId).details.map((id) => this.proof.details[id])
     }
 
     detail(detailId: number): StmtDetail {
@@ -58,11 +61,11 @@ export class MyStore {
     }
 
     get active(): Stmt | undefined {
-        if (this.proof.active) return this.stmt(this.proof.active)
+        if (this.proof.active !== undefined) return this.stmt(this.proof.active)
     }
 
     get activeDetail(): StmtDetail | undefined {
-        if (this.proof.active) return this.zoomedDetail(this.proof.active)
+        if (this.proof.active !== undefined) return this.zoomedDetail(this.proof.active)
     }
 
     get stmtGraph(): dagre.graphlib.Graph {
@@ -80,6 +83,9 @@ export class MyStore {
         })
         return g
     }
+
+    @Mutation()
+    setEditing(editing: boolean) { this.editing = editing }
 
     @Mutation()
     setProof(newProof: Proof) { Object.assign(this.proof, newProof) }

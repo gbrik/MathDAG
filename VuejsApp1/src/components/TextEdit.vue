@@ -6,7 +6,8 @@
                   @change="onChange" 
                   @keydown="onKeydown"
                   @blur="renderMath"
-                  v-model="textValue">
+                  v-model="textValue"
+                  v-bind:readonly="!editing">
 		</textarea>
         <pre v-if="expanding" v-show="!showingRendered"><span>{{textValue}}</span><br/></pre>
 		<div class="mathjaxDiv" v-show="showingRendered" @click="focusTextArea">
@@ -18,7 +19,7 @@
 /// <reference types="mathjax" />
     import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
     import { Key } from 'ts-key-enum'
-    import S from 'string'
+    import { store } from '@/model'
 
 	@Component
 	export default class TextEdit extends Vue {
@@ -38,6 +39,7 @@
         mathJaxContainer() { return this.$el.querySelector('.mathjaxDiv')! as HTMLDivElement }
 
         showingRendered: boolean = false
+        get editing() { return store.editing }
         textValue: string = ''
 
 		mounted() {
@@ -66,8 +68,10 @@
         }
 
         focusTextArea(event: Event) {
-            this.showingRendered = false
-            Vue.nextTick(() => this.textArea().focus())
+            if (store.editing) {
+                this.showingRendered = false
+                Vue.nextTick(() => this.textArea().focus())
+            }
         }
 
         renderMath() {
@@ -77,7 +81,8 @@
                 return
             }
             // @ts-ignore
-			MathJax.Hub.Queue(() => this.mathJaxContainer().innerText = this.textValue.replace(/[\[\]]/g, ''),
+            MathJax.Hub.Queue(() => this.mathJaxContainer().innerText = this.textValue.replace(/[\[\]]/g, ''),
+                () => this.showingRendered = false,
                 ['Typeset', MathJax.Hub, this.mathJaxContainer()],
                 () => this.showingRendered = true)
         }

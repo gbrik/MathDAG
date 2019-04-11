@@ -1,7 +1,8 @@
 ﻿<template>
-    <div class="dag" v-bind:style="style">
-        <DAGEdge v-for="edge in edges" :edge="graph.edge(edge)"></DAGEdge>
+    <div class="dag">
+        <DAGEdge v-for="edge in edges" :edge="graph.edge(edge)" :graph="graph"></DAGEdge>
         <DAGStmt v-for="id in nodeIds" :node="graph.node(id)" :stmtId="parseFloat(id)"></DAGStmt>
+        <div class="xtra" v-bind:style="xtraStyle"></div>
     </div>
 </template>
 
@@ -34,10 +35,10 @@
             return graph
         }
 
-        get style() {
+        get xtraStyle() {
             return {
-            //    height: this.graph.graph().height! + 'px',
-            //    width:  this.graph.graph().width! + 'px',
+                left: this.graph.graph().width! + 'px',
+                top:  this.graph.graph().height! + 'px',
             }
         }
 
@@ -52,7 +53,12 @@
         position: absolute;
         height: 100%;
         width: 100%;
-        padding: 5px;
         overflow: auto;
+    }
+
+    .xtra {
+        position: absolute;
+        width: 10px;
+        height: 10px;
     }
 </style>
