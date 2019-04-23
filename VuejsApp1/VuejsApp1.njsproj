@@ -590,6 +590,12 @@
     <TypeScriptCompile Include="src\model.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="src\dag.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\store.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="types\bootstrap-vue.d.ts" />
     <TypeScriptCompile Include="types\yaml.d.ts">
       <SubType>Code</SubType>

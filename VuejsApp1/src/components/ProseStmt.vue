@@ -1,7 +1,13 @@
 ﻿<template>
     <div class="proseStmtContainer" @focus.capture="focused">
         <div class="proseStmt">
-            <TextEdit class="titleText" expanding="true" math="true" v-model="stmtName" placeholder="name"/>
+            <div class="header">
+                <TextEdit class="titleText" expanding="true" math="true" v-model="stmtName" placeholder="name"/>
+                <div class="headerBttnContainer">
+                    <Button v-if="!editing" v-model="stmtPinned" v-bind:text="stmtPinned ? 'Pin' : 'Unpin'"></Button>
+                    <Button v-if="editing" @click="deleteStmt" icon="delete"></Button>
+                </div>
+            </div>
             <div v-show="visible" class="detailContainer">
                 <TextEdit v-if="detail" class="bodyText" expanding="true" math="true" v-model="detailStmt" placeholder="statement"/>
                 <TextEdit v-if="detail" class="bodyText" expanding="true" math="true" v-model="detailJustification" placeholder="justification"/>
@@ -10,31 +16,27 @@
         </div>
         <div v-show="visible" class="proseBttnContainer">
             <div v-for="det in details" >
-                <button class="bttn" @click="setZoom(det.zoom)">{{det.zoom}}</button>
-                <button v-if="editing" class="bttn smol" @click="deleteDetail(det.zoom)">x</button>
+                <Button @click="setZoom(det.zoom)" 
+                        v-bind:text="det.zoom.toString()"
+                        v-bind:active="det.zoom === detail.zoom">
+                </Button>
+                <Button v-if="editing" class="smol" @click="deleteDetail(det.zoom)" icon="delete"></Button>
             </div>
             <div v-if="editing "style="display: flex; flex-direction: row;">
                 <input class="newZoomInput"  @keydown="detailKeydown" placeholder="new zoom" v-model.number="newZoom" />
-                <button class="bttn" @click="addDetail">+</button>
-            </div>
-            <div v-if="editing">
-                <button class="bttn" @click="deleteStmt">Delete Stmt</button>
+                <Button @click="addDetail" icon="add"></Button>
             </div>
         </div>
     </div>
 </template>
 
 <script lang="ts">
-	import { Component, Vue, Prop, Watch } from 'vue-property-decorator'
+	import { Component, Vue, Prop } from 'vue-property-decorator'
     import { Key } from 'ts-key-enum'
-    import { Stmt, StmtDetail, Proof, store } from '@/model'
-	import TextEdit from '@/components/TextEdit.vue'
+    import { Stmt, StmtDetail } from '@/model'
+    import { store } from '@/store'
 
-	@Component({
-		components: {
-			TextEdit
-		}
-	})
+	@Component
 	export default class ProseStmt extends Vue {
 		@Prop(Number)
 		stmtId!: number
@@ -42,7 +44,10 @@
         stmt: Stmt = store.stmt(this.stmtId)
 
         get stmtName(): string { return store.stmt(this.stmtId).name }
-        set stmtName(s: string) { store.setStmtName({ stmtId: this.stmtId, name: s }) }
+        set stmtName(name: string) { store.setStmtName({ stmtId: this.stmtId, name: name }) }
+
+        get stmtPinned(): boolean { return store.stmt(this.stmtId).pinned }
+        set stmtPinned(pinned: boolean) { store.setStmtPinned({ stmtId: this.stmtId, pinned: pinned }) }
 
         get details(): Array<StmtDetail> { return store.details(this.stmtId) }
 
@@ -54,7 +59,7 @@
         get detailJustification(): string | undefined { return this.detail ? this.detail.justification : undefined }
         set detailJustification(s) { store.setDetailJustification({ detailId: this.detail!.id, justification: s! }) }
 
-        get minZoom(): number { return this.details.length === 0 ? 0 : Math.min(...this.details.map((det) => det.zoom)) }
+        get minZoom(): number { return store.minZoom(this.stmtId) }
 
         get isRelevant() {
             if (store.proof.active === this.stmtId) return true
@@ -94,6 +99,10 @@
         deleteDetail(zoom: number) {
             store.deleteDetailByZoom({ stmtId: this.stmtId, zoom: zoom })
         }
+
+        togglePinned() {
+            this.stmtPinned = !this.stmtPinned
+        }
 	}
 </script>
 
@@ -116,25 +125,19 @@
     .proseBttnContainer {
         margin-left: 10px;
     }
-    
-    .bttn {
-        margin: 2px;
-        background: none;
-        border: none;
-        box-shadow: 0 0 3px 1px black;
-    }
 
-    .bttn:active {
-        box-shadow: inset;
-    }
-
-    .bttn.smol {
+    .smol {
         transform: scale(0.666) translate(-30%, -30%);
+    }
+
+    .smol:active {
+        transform: scale(0.666) translate(-30%, -30%) translate(1px, 1px);
     }
 
     .titleText {
         font-size: 1.7em;
         font-weight: 600;
+        flex-grow: 1;
     }
 
     .bodyText {
@@ -171,5 +174,9 @@
 
     detailContainer {
         overflow: hidden;
+    }
+
+    .header {
+        display: flex;
     }
 </style>

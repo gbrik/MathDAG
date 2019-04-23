@@ -19,7 +19,7 @@
 /// <reference types="mathjax" />
     import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
     import { Key } from 'ts-key-enum'
-    import { store } from '@/model'
+    import { store } from '@/store'
 
 	@Component
 	export default class TextEdit extends Vue {
@@ -92,7 +92,7 @@
 <style lang="scss" scoped>
 	textArea, pre {
         margin: 0;
-        padding: 5px;
+        padding: 0;
         outline: 0;
         border: 0;
 

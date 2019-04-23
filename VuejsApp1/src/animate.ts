@@ -1,6 +1,7 @@
-﻿import TWEEN from '@tweenjs/tween.js'
+﻿//@ts-ignore
+import TWEEN from '@tweenjs/tween.js'
 
-export function runTween(tween: TWEEN.Tween) {
+export function runTween(tween: TWEEN.Tween, onComplete: Function | undefined = undefined) {
     let frameHandler: number
 
     // Handles updating the tween on each frame.
@@ -11,6 +12,7 @@ export function runTween(tween: TWEEN.Tween) {
 
     tween.onComplete(() => {
         cancelAnimationFrame(frameHandler)
+        if (onComplete) onComplete()
     })
     .start()
 

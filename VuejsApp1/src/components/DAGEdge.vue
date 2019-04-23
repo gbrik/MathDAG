@@ -5,37 +5,42 @@
 </template>
 
 <script lang="ts">
+    import { Edge, Dimensions, DAGNode } from '@/model'
+    import { store } from '@/store'
     import { Component, Prop, Vue } from 'vue-property-decorator'
-    import { store, Stmt } from '@/model'
-    //@ts-ignore
-    import TWEEN from '@tweenjs/tween.js'
-    import dagre from 'dagre'
 
     @Component
     export default class DAGStmt extends Vue {
         @Prop()
-        edge!: dagre.GraphEdge
+        edge!: Edge
 
         @Prop()
-        graph!: dagre.graphlib.Graph
+        dims!: Dimensions
+
+        get pts(): Array<{ x: number, y: number }> {
+            function nodeToPoint(n: DAGNode) {
+                return { x: n.x, y: n.y + n.height / 2 }
+            }
+            return [store.node(this.edge.v)!, store.node(this.edge.w)!].map(nodeToPoint)
+        }
 
         get path() {
-            var pts = this.edge.points
-            var pathStr = "M " + pts[0].x + " " + pts[0].y
-            pts.forEach(({ x, y }) => pathStr = pathStr + " L " + x + " " + y)
+            let pts = this.pts.map((p) => p.x + " " + p.y)
+            pts.splice(1, pts.length - 2)
+            let pathStr = "M " + pts.join(" L ")
             return pathStr
         }
 
         get svgStyle() {
             return {
-                height: this.graph.graph().height + 'px',
-                width:  this.graph.graph().width + 'px',
+                height: this.dims.height + 'px',
+                width:  this.dims.width + 'px',
             }
         }
     }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
     svg {
         position: absolute;
         width: 100%;

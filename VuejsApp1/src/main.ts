@@ -13,9 +13,22 @@ Vue.use(Form)
 Vue.use(ButtonGroup)
 
 import App from '@/App.vue'
-import { vuexStore } from '@/model'
+import DAG from '@/components/DAG.vue'
+import DAGEdge from '@/components/DAGEdge.vue'
+import DAGStmt from '@/components/DAGStmt.vue'
+import Button from '@/components/Button.vue'
+import ProseStmt from '@/components/ProseStmt.vue'
+import TextEdit from '@/components/TextEdit.vue'
+import { vuexStore } from '@/store'
 
 Vue.config.productionTip = true
+
+Vue.component('DAG', DAG)
+Vue.component('Button', Button)
+Vue.component('DAGEdge', DAGEdge)
+Vue.component('DAGStmt', DAGStmt)
+Vue.component('ProseStmt', ProseStmt)
+Vue.component('TextEdit', TextEdit)
 
 new Vue({
     render: h => h(App),

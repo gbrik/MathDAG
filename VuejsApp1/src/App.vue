@@ -1,15 +1,19 @@
 <template>
     <div id="app">
         <div class="buttonContainer" >
-		    <div><button @click="addStmt">Add Statement</button></div>
-            <div><button @click="save">Save</button></div>
-            <div><input id="fileInput" style="width: 90px;" type="file" accept=".yaml"></input><button @click="load">Load</button></div>
+		    <div><Button @click="addStmt" text="Add Statement"></Button></div>
             <div>
-                <span style="margin-right: 5px">Global zoom: {{globalZoom}}</span>
-                <button @click="incZoom">+</button>
-                <button @click="decZoom">-</button>
+                <Button @click="save" text="Save"></Button>
+                <input id="fileInput" @change="doLoad" hidden style="width: 90px;" type="file" accept=".yaml">
+                <Button @click="load" text="Load"></Button>
             </div>
-            <button @click="toggleEdit">{{editText}}</button>
+            <div>
+                <span style="margin-right: 5px; vertical-align: top;">{{globalZoom}}</span>
+                <Button @click="incZoom" icon="zoom_in"></Button>
+                <Button @click="decZoom" icon="zoom_out"></Button>
+            </div>
+            <div><Button v-model="editing" v-bind:text="editText"></Button></div>
+            <div><Button @click="autoLayout" text="Auto Layout"></Button></div>
         </div>
         <div class="proseContainer">
 		    <ProseStmt v-for="stmt, index in stmts" :stmtId="stmt.id" :key="stmt.id">
@@ -22,23 +26,21 @@
 </template>
 
 <script lang="ts">
+    import { Stmt } from '@/model'
+    import { store } from '@/store'
+
     import { Component, Vue, Prop } from 'vue-property-decorator'
     import YAML from 'yaml'
     import $ from 'jquery'
-    import ProseStmt from '@/components/ProseStmt.vue'
-    import DAG from '@/components/DAG.vue'
-    import { Stmt, store } from '@/model'
 
-	@Component({
-		components: {
-            ProseStmt,
-            DAG
-		}
-	})
+	@Component
     export default class App extends Vue {
         get stmts(): Array<Stmt> { return store.stmts }
         get globalZoom(): number { return store.proof.globalZoom }
-        get editText(): string { return store.editing ? 'View Mode' : 'Edit Mode' }
+
+        get editing(): boolean { return store.editing }
+        set editing(b: boolean) { store.setEditing(b) }
+        get editText(): string { return this.editing ? 'View Mode' : 'Edit Mode' }
 
         reader: FileReader = new FileReader()
 
@@ -66,17 +68,22 @@
 
         load() {
             var input = this.$el.querySelector('#fileInput')! as HTMLInputElement
+            input.click()
+        }
+
+        doLoad() {
+            var input = this.$el.querySelector('#fileInput')! as HTMLInputElement
             this.reader.readAsText(input.files![0])
         }
 
         addStmt() { store.addStmt() }
         incZoom() { store.setZoom(store.proof.globalZoom + 1) }
         decZoom() { store.setZoom(Math.max(store.proof.globalZoom - 1, 0)) }
-        toggleEdit() { store.setEditing(!store.editing) }
+        autoLayout() { store.autoLayoutStmts() }
 	}
 </script>
 
-<style>
+<style lang="scss">
 	#app {
         display: flex;
         margin: 10px;
