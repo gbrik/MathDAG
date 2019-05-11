@@ -21,7 +21,7 @@
 
         get edges(): Array<Edge> {
             return store.edges.filter(({ v, w }) =>
-                store.node(v) !== undefined && store.node(w) !== undefined)
+                store.displayedNode(v) !== undefined && store.displayedNode(w) !== undefined)
         }
 
         get xtraStyle() {

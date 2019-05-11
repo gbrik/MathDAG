@@ -21,7 +21,7 @@
             function nodeToPoint(n: DAGNode) {
                 return { x: n.x, y: n.y + n.height / 2 }
             }
-            return [store.node(this.edge.v)!, store.node(this.edge.w)!].map(nodeToPoint)
+            return [store.displayedNode(this.edge.v)!, store.displayedNode(this.edge.w)!].map(nodeToPoint)
         }
 
         get path() {

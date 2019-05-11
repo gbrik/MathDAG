@@ -60,8 +60,10 @@ export class MyStore {
     @Mutation()
     addStmt() {
         var newId = this.proof.maxStmtId++
+        const stmt = new Stmt(newId)
+        stmt.coords.x = this.dims.width + stmt.collapsedDims.width / 2
         this.proof.stmtIds.push(newId)
-        Vue.set(this.proof.stmts, newId, new Stmt(newId))
+        Vue.set(this.proof.stmts, newId, stmt)
     }
 
     @Mutation()
@@ -169,8 +171,8 @@ export class MyStore {
 
     get dims(): Dimensions {
         return {
-            height: Math.max(...this.nodes.map((n) => n.node.y + n.node.height)) + 25,
-            width: Math.max(...this.nodes.map((n) => n.node.x + n.node.width / 2)) + 25,
+            height: Math.max(0, ...this.nodes.map((n) => n.node.y + n.node.height)) + 25,
+            width: Math.max(0, ...this.nodes.map((n) => n.node.x + n.node.width / 2)) + 25,
         }
     }
 
@@ -191,6 +193,12 @@ export class MyStore {
             s.curZoom <= this.proof.globalZoom)
         const nodes = removeGaps(toUse.map((s) => this.node(s.id)))
         return nodes.map((n, idx) => { return { id: toUse[idx].id, node: n } })
+    }
+
+    displayedNode(id: StmtId): DAGNode | undefined {
+        const filt = this.displayedNodes.filter((n) => n.id === id)
+        if (filt.length > 0) return filt[0].node
+        return undefined
     }
 
     private get _distances() { return distances(this.proof.stmtIds, this.edges) }
