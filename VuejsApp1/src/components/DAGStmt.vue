@@ -7,14 +7,17 @@
                     <Button v-if="detail"
                             v-model="stmtExpanded" 
                             v-bind:icon="stmtExpanded ? 'unfold_less' : 'unfold_more'"></Button>
-                    <Button icon="control_camera" @mousedown="mousedownPosition"></Button>
+                    <Button v-if="editing" icon="control_camera" @mousedown="mousedownPosition"></Button>
                 </div>
             </div> 
             <div class="dagStmtDetailContainer" v-bind:class="{ tweening: tweening }">
                 <TextEdit v-if="detail && stmtExpanded" expanding="true" math="true" v-model="detailStmt" placeholder="statement"/>
                 <TextEdit v-if="detail && stmtExpanded" expanding="true" math="true" v-model="detailJustification" placeholder="justification"/>
             </div>
-            <div v-for="resizer in resizers" v-bind:style="resizer.style" @mousedown.prevent="mousedownResizer($event, resizer)">
+            <div v-for="resizer in resizers" 
+                 v-if="editing"
+                 v-bind:style="resizer.style" 
+                 @mousedown.prevent="mousedownResizer($event, resizer)">
             </div>
         </div>
     </div>
@@ -41,12 +44,15 @@
         @Prop(Number)
         stmtId!: number
 
-        get node(): DAGNode { return store.node(this.stmtId)! }
+        @Prop()
+        node!: DAGNode
 
         pauseTween: boolean = false
         tweening: boolean = false
         tweenedNode: DAGNode = this.node
         tweenedScale = { scale: this.scale }
+
+        get editing(): boolean { return store.editing }
 
         get stmtName(): string { return store.stmt(this.stmtId).name }
         set stmtName(s: string) { store.setStmtName({ stmtId: this.stmtId, name: s }) }
@@ -139,6 +145,8 @@
         }
 
         mousedownPosition(event: MouseEvent) {
+            if (!this.editing || this.pauseTween) return
+
             const initialPos = { x: event.pageX, y: event.pageY }
             const initialNode = Object.assign({}, this.node)
 
@@ -183,7 +191,7 @@
         }
 
         mousedownResizer(event: MouseEvent, resizer: Resizer) {
-            if (this.pauseTween) return
+            if (!this.editing || this.pauseTween) return
 
             const initPos = { x: event.pageX, y: event.pageY }
             const initNode = Object.assign({}, this.node)

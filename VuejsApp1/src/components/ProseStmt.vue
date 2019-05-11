@@ -62,9 +62,12 @@
         get minZoom(): number { return store.minZoom(this.stmtId) }
 
         get isRelevant() {
+            return true
+            /*
             if (store.proof.active === this.stmtId) return true
             if (store.activeDetail === undefined) return false
             return store.activeDetail.dependents.find((id) => id === this.stmtId) !== undefined
+            */
         }
 
         get visible(): boolean { return this.minZoom <= store.proof.globalZoom || this.isRelevant }

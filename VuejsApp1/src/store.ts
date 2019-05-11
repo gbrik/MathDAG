@@ -4,7 +4,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import { Store } from 'vuex'
 import { State, Mutation, createVuexStore } from 'vuex-simple'
-import { autoLayoutStmts, distances } from './dag';
+import { autoLayoutStmts, distances, removeGaps } from './dag';
 Vue.use(Vuex)
 
 export class MyStore {
@@ -169,21 +169,28 @@ export class MyStore {
 
     get dims(): Dimensions {
         return {
-            height: Math.max(...this.nodes.map((n) => n.y + n.height)) + 25,
-            width: Math.max(...this.nodes.map((n) => n.x + n.width / 2)) + 25,
+            height: Math.max(...this.nodes.map((n) => n.node.y + n.node.height)) + 25,
+            width: Math.max(...this.nodes.map((n) => n.node.x + n.node.width / 2)) + 25,
         }
     }
 
-    node(stmtId: StmtId): DAGNode | undefined {
+    node(stmtId: StmtId): DAGNode {
         const stmt = this.stmt(stmtId)
         return Object.assign({}, stmt.coords, stmt.dagExpanded ? stmt.expandedDims : stmt.collapsedDims)
     }
 
-    get nodes(): Array<DAGNode> {
-        return this.proof.stmtIds.flatMap((id) => {
-            const node = this.node(id)
-            return node ? [node] : []
-        })
+    get nodes(): Array<{ id: StmtId, node: DAGNode }> {
+        return this.proof.stmtIds.map((id) => { return { id: id, node: this.node(id) } })
+    }
+
+    get displayedNodes(): Array<{ id: StmtId, node: DAGNode }> {
+        if (store.editing) return this.nodes
+
+        const toUse = this.stmts.filter((s) =>
+            s.curZoom === undefined ||
+            s.curZoom <= this.proof.globalZoom)
+        const nodes = removeGaps(toUse.map((s) => this.node(s.id)))
+        return nodes.map((n, idx) => { return { id: toUse[idx].id, node: n } })
     }
 
     private get _distances() { return distances(this.proof.stmtIds, this.edges) }

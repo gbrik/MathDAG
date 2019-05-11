@@ -1,4 +1,4 @@
-﻿import { Edge, StmtId, DAGNode } from '@/model'
+﻿import { Edge, StmtId, DAGNode, copyDAGNode } from '@/model'
 import dagre from 'dagre'
 
 export function autoLayoutStmts(
@@ -50,12 +50,38 @@ export function distances(stmts: Array<StmtId>, edges: Array<Edge>): Map<StmtId,
     return dists
 }
 
+export function removeGaps(nodes: Array<DAGNode>, gapSize: number = 25): Array<DAGNode> {
+    const nodeVgaps = vgaps(nodes, gapSize)
+    const vsquished = nodes.map(copyDAGNode)
+    nodeVgaps.forEach(({ idx, delta }) => {
+        vsquished.forEach((n, idxTest) => {
+            if (nodes[idxTest].y > nodes[idx].y + nodes[idx].height) {
+                n.y -= delta
+            }
+        })
+    })
+
+    const nodeHgaps = hgaps(vsquished, gapSize)
+    const ret = vsquished.map(copyDAGNode)
+    nodeHgaps.forEach(({ idx, delta }) => {
+        ret.forEach((n, idxTest) => {
+            const ln = vsquished[idxTest]
+            const rn = vsquished[idx]
+            if (ln.x - ln.width / 2 > rn.x + rn.width / 2) {
+                n.x -= delta
+            }
+        })
+    })
+
+    return ret
+}
+
 export function vgaps(nodes: Array<DAGNode>, gapsize: number): Array<{ idx: number, delta: number }> {
     return gaps(nodes.map((n) => n.y), nodes.map((n) => n.y + n.height), gapsize)
 }
 
 export function hgaps(nodes: Array<DAGNode>, gapsize: number): Array<{ idx: number, delta: number }> {
-    return gaps(nodes.map((n) => n.x - n.height / 2), nodes.map((n) => n.x + n.height / 2), gapsize)
+    return gaps(nodes.map((n) => n.x - n.width / 2), nodes.map((n) => n.x + n.width / 2), gapsize)
 }
 
 function gaps(starts: Array<number>, ends: Array<number>, gapsize: number): Array<{ idx: number, delta: number }> {
@@ -66,13 +92,17 @@ function gaps(starts: Array<number>, ends: Array<number>, gapsize: number): Arra
     let endCursor = 0
     let gaps: Array<{ idx: number, delta: number }> = []
     while (endCursor < endIdxs.length) {
-        while (startCursor < startIdxs.length && startCursor < endCursor) {
-            startCursor++
-            const gap = starts[startIdxs[startCursor]] - ends[endIdxs[endCursor]]
-            if (gap > 25) {
-                gaps.push({idx: endIdxs[endCursor], delta: gap - 25})
+        if (starts[startIdxs[endCursor + 1]] > ends[endIdxs[endCursor]]) {
+            const end = ends[endIdxs[endCursor]]
+            while (startCursor < startIdxs.length && starts[startIdxs[startCursor]] < end) {
+                startCursor++
+                const gap = starts[startIdxs[startCursor]] - end
+                if (gap > 25) {
+                    gaps.push({idx: endIdxs[endCursor], delta: gap - 25})
+                }
             }
         }
+        endCursor++
     }
     return gaps
 }

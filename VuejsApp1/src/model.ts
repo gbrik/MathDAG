@@ -50,3 +50,12 @@ export class Proof {
         public globalZoom: number = 0,
     ) { }
 }
+
+export function copyDAGNode(n: DAGNode): DAGNode {
+    return {
+        x: n.x,
+        y: n.y,
+        height: n.height,
+        width: n.width,
+    }
+}
